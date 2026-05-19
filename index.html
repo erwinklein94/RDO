@@ -15,6 +15,7 @@
       --danger: #d92d20;
       --border: #d0d5dd;
       --success: #087443;
+      --warning: #b54708;
       --shadow: 0 10px 30px rgba(16, 24, 40, 0.08);
       --radius: 18px;
     }
@@ -96,6 +97,12 @@
     .grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 14px;
     }
 
@@ -182,6 +189,11 @@
       color: var(--success);
     }
 
+    .warning {
+      background: #fffaeb;
+      color: var(--warning);
+    }
+
     .hidden {
       display: none !important;
     }
@@ -199,6 +211,24 @@
       align-items: end;
       gap: 12px;
       flex-wrap: wrap;
+    }
+
+    .period-panel {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      background: #f8fafc;
+      margin-top: 18px;
+    }
+
+    .period-panel h3 {
+      margin: 0 0 10px;
+    }
+
+    .period-summary {
+      margin: 10px 0 0;
+      font-weight: 700;
+      color: var(--primary-dark);
     }
 
     .history-list {
@@ -248,6 +278,10 @@
       color: #344054;
     }
 
+    #print-area {
+      display: none;
+    }
+
     footer {
       text-align: center;
       color: var(--muted);
@@ -256,7 +290,8 @@
     }
 
     @media (max-width: 720px) {
-      .grid {
+      .grid,
+      .grid-3 {
         grid-template-columns: 1fr;
       }
 
@@ -275,38 +310,35 @@
         background: white;
       }
 
-      header,
-      .tabs,
-      .actions,
-      .no-print,
-      footer {
-        display: none !important;
+      body * {
+        visibility: hidden;
       }
 
-      main {
-        width: 100%;
-        margin: 0;
+      #print-area,
+      #print-area * {
+        visibility: visible;
       }
 
-      .card {
-        box-shadow: none;
-        border: none;
-        padding: 0;
-      }
-
-      .print-title {
+      #print-area {
         display: block !important;
-        font-size: 22px;
-        font-weight: 800;
-        margin-bottom: 16px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 0;
+        color: black;
+        white-space: pre-wrap;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 13px;
       }
 
-      .preview-box {
-        border: none;
-        padding: 0;
-        background: white;
-        color: black;
-        font-size: 14px;
+      #print-area h1 {
+        font-size: 22px;
+        margin: 0 0 10px;
+      }
+
+      #print-area .print-content {
+        white-space: pre-wrap;
       }
     }
   </style>
@@ -325,8 +357,6 @@
 
     <section id="form-tab" class="tab-content">
       <div class="card">
-        <div class="print-title hidden">Relatório Diário Operacional - Darci de Brum</div>
-
         <div class="grid no-print">
           <div>
             <label for="report-date">Dia do serviço</label>
@@ -340,7 +370,11 @@
 
         <div class="no-print" style="margin-top: 14px;">
           <label for="activities">Atividades realizadas</label>
-          <textarea id="activities" placeholder="Exemplo:\n- Chegada ao local de trabalho\n- Verificação das atividades do dia\n- Execução dos serviços realizados\n- Observações importantes"></textarea>
+          <textarea id="activities" placeholder="Exemplo:
+- Chegada ao local de trabalho
+- Verificação das atividades do dia
+- Execução dos serviços realizados
+- Observações importantes"></textarea>
           <div class="help">As informações ficam salvas somente neste navegador/dispositivo.</div>
         </div>
 
@@ -372,6 +406,44 @@
           </div>
         </div>
 
+        <div class="period-panel">
+          <h3>Relatório consolidado por período</h3>
+          <p class="help">Escolha uma data inicial e final para juntar vários RDOs em um único texto, PDF ou mensagem de WhatsApp.</p>
+
+          <div class="grid-3">
+            <div>
+              <label for="period-start">Data inicial</label>
+              <input id="period-start" type="date" />
+            </div>
+            <div>
+              <label for="period-end">Data final</label>
+              <input id="period-end" type="date" />
+            </div>
+            <div>
+              <label for="period-order">Ordem do relatório</label>
+              <select id="period-order">
+                <option value="asc">Mais antigo primeiro</option>
+                <option value="desc">Mais recente primeiro</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="period-summary" class="period-summary">Nenhum período selecionado.</div>
+
+          <div class="actions">
+            <button class="secondary" id="copy-period-btn">Copiar período</button>
+            <button class="neutral" id="pdf-period-btn">PDF do período</button>
+            <a class="button-link success" id="whatsapp-period-btn" href="#" target="_blank" rel="noopener">WhatsApp do período</a>
+            <button class="warning" id="clear-period-btn">Limpar período</button>
+          </div>
+
+          <div class="actions">
+            <button class="secondary" id="copy-all-btn">Copiar histórico todo</button>
+            <button class="neutral" id="pdf-all-btn">PDF histórico todo</button>
+            <a class="button-link success" id="whatsapp-all-btn" href="#" target="_blank" rel="noopener">WhatsApp histórico todo</a>
+          </div>
+        </div>
+
         <div class="actions">
           <button class="neutral" id="export-backup-btn">Exportar backup</button>
           <button class="secondary" id="import-backup-btn">Importar backup</button>
@@ -379,10 +451,16 @@
           <button class="danger" id="delete-all-btn">Apagar todo histórico</button>
         </div>
 
+        <h3 style="margin-top: 24px;">Relatórios individuais salvos</h3>
         <div id="history-list" class="history-list"></div>
       </div>
     </section>
   </main>
+
+  <section id="print-area" aria-hidden="true">
+    <h1 id="print-title">Relatório Diário Operacional - RDO</h1>
+    <div id="print-content" class="print-content"></div>
+  </section>
 
   <footer>
     RDO local para uso em GitHub Pages • Desenvolvido em HTML, CSS e JavaScript puro
@@ -400,6 +478,14 @@
     const historyList = document.getElementById('history-list');
     const historySearch = document.getElementById('history-search');
     const backupFile = document.getElementById('backup-file');
+    const periodStartInput = document.getElementById('period-start');
+    const periodEndInput = document.getElementById('period-end');
+    const periodOrderInput = document.getElementById('period-order');
+    const periodSummary = document.getElementById('period-summary');
+    const whatsappPeriodBtn = document.getElementById('whatsapp-period-btn');
+    const whatsappAllBtn = document.getElementById('whatsapp-all-btn');
+    const printTitle = document.getElementById('print-title');
+    const printContent = document.getElementById('print-content');
 
     function todayISO() {
       const now = new Date();
@@ -425,10 +511,6 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
     }
 
-    function buildReportText(report = getCurrentReport()) {
-      return `RELATÓRIO DIÁRIO OPERACIONAL - RDO\n\nColaborador: ${report.worker || 'Darci de Brum'}\nData: ${formatDateBR(report.date)}\n\nAtividades realizadas:\n${report.activities || 'Nenhuma atividade informada.'}`;
-    }
-
     function getCurrentReport() {
       return {
         id: dateInput.value || todayISO(),
@@ -439,6 +521,45 @@
       };
     }
 
+    function buildReportText(report = getCurrentReport()) {
+      return `RELATÓRIO DIÁRIO OPERACIONAL - RDO
+
+Colaborador: ${report.worker || 'Darci de Brum'}
+Data: ${formatDateBR(report.date)}
+
+Atividades realizadas:
+${report.activities || 'Nenhuma atividade informada.'}`;
+    }
+
+    function buildConsolidatedText(reports, title) {
+      if (!reports.length) {
+        return `${title}
+
+Nenhum relatório encontrado para o período selecionado.`;
+      }
+
+      const separator = '----------------------------------------';
+      const reportBlocks = reports.map(report => {
+        return `${separator}
+Data: ${formatDateBR(report.date)}
+Colaborador: ${report.worker || 'Darci de Brum'}
+
+Atividades realizadas:
+${report.activities || 'Nenhuma atividade informada.'}`;
+      }).join(String.fromCharCode(10, 10));
+
+      const firstDate = formatDateBR(reports[0].date);
+      const lastDate = formatDateBR(reports[reports.length - 1].date);
+
+      return `${title}
+
+Colaborador: Darci de Brum
+Quantidade de relatórios: ${reports.length}
+Período listado: ${firstDate} até ${lastDate}
+
+${reportBlocks}`;
+    }
+
     function setStatus(message, isError = false) {
       statusEl.textContent = message;
       statusEl.style.color = isError ? 'var(--danger)' : 'var(--success)';
@@ -446,6 +567,11 @@
       setStatus.timeout = window.setTimeout(() => {
         statusEl.textContent = '';
       }, 3500);
+    }
+
+    function showHistoryMessage(message, isError = false) {
+      openTab('history-tab');
+      setStatus(message, isError);
     }
 
     function updatePreview() {
@@ -481,6 +607,7 @@
       reports.sort((a, b) => b.date.localeCompare(a.date));
       saveReports(reports);
       renderHistory();
+      updateConsolidatedLinks();
       setStatus('Relatório salvo com sucesso.');
     }
 
@@ -519,7 +646,113 @@
       const reports = loadReports().filter(item => item.date !== reportDate);
       saveReports(reports);
       renderHistory();
+      updateConsolidatedLinks();
       setStatus('Relatório removido do histórico.');
+    }
+
+    function getReportsByOrder(reports) {
+      return [...reports].sort((a, b) => {
+        if (periodOrderInput.value === 'desc') return b.date.localeCompare(a.date);
+        return a.date.localeCompare(b.date);
+      });
+    }
+
+    function getPeriodReports() {
+      const start = periodStartInput.value;
+      const end = periodEndInput.value;
+      const reports = loadReports().filter(report => {
+        if (start && report.date < start) return false;
+        if (end && report.date > end) return false;
+        return true;
+      });
+      return getReportsByOrder(reports);
+    }
+
+    function getAllReportsOrdered() {
+      return getReportsByOrder(loadReports());
+    }
+
+    function getPeriodTitle() {
+      const start = periodStartInput.value;
+      const end = periodEndInput.value;
+
+      if (start && end) return `RELATÓRIO CONSOLIDADO RDO - ${formatDateBR(start)} até ${formatDateBR(end)}`;
+      if (start) return `RELATÓRIO CONSOLIDADO RDO - a partir de ${formatDateBR(start)}`;
+      if (end) return `RELATÓRIO CONSOLIDADO RDO - até ${formatDateBR(end)}`;
+      return 'RELATÓRIO CONSOLIDADO RDO - período não definido';
+    }
+
+    function getAllTitle() {
+      return 'RELATÓRIO CONSOLIDADO RDO - HISTÓRICO COMPLETO';
+    }
+
+    function updateConsolidatedLinks() {
+      const periodReports = getPeriodReports();
+      const allReports = getAllReportsOrdered();
+      const periodText = buildConsolidatedText(periodReports, getPeriodTitle());
+      const allText = buildConsolidatedText(allReports, getAllTitle());
+
+      whatsappPeriodBtn.href = `https://wa.me/?text=${encodeURIComponent(periodText)}`;
+      whatsappAllBtn.href = `https://wa.me/?text=${encodeURIComponent(allText)}`;
+
+      const start = periodStartInput.value;
+      const end = periodEndInput.value;
+      const periodLabel = start || end
+        ? `${start ? formatDateBR(start) : 'início'} até ${end ? formatDateBR(end) : 'hoje'}`
+        : 'Nenhum período selecionado. Os botões de período usarão todos os relatórios salvos.';
+
+      periodSummary.textContent = `${periodLabel} • ${periodReports.length} relatório(s) encontrado(s). Histórico completo: ${allReports.length} relatório(s).`;
+    }
+
+    function printText(title, text) {
+      printTitle.textContent = title;
+      printContent.textContent = text;
+      window.print();
+    }
+
+    function copyPeriodReports() {
+      const reports = getPeriodReports();
+      if (!reports.length) {
+        showHistoryMessage('Nenhum relatório encontrado para o período selecionado.', true);
+        return;
+      }
+      copyText(buildConsolidatedText(reports, getPeriodTitle()));
+    }
+
+    function printPeriodReports() {
+      const reports = getPeriodReports();
+      if (!reports.length) {
+        showHistoryMessage('Nenhum relatório encontrado para o período selecionado.', true);
+        return;
+      }
+      const title = getPeriodTitle();
+      printText(title, buildConsolidatedText(reports, title));
+    }
+
+    function copyAllReports() {
+      const reports = getAllReportsOrdered();
+      if (!reports.length) {
+        showHistoryMessage('Nenhum relatório salvo no histórico.', true);
+        return;
+      }
+      copyText(buildConsolidatedText(reports, getAllTitle()));
+    }
+
+    function printAllReports() {
+      const reports = getAllReportsOrdered();
+      if (!reports.length) {
+        showHistoryMessage('Nenhum relatório salvo no histórico.', true);
+        return;
+      }
+      const title = getAllTitle();
+      printText(title, buildConsolidatedText(reports, title));
+    }
+
+    function clearPeriod() {
+      periodStartInput.value = '';
+      periodEndInput.value = '';
+      updateConsolidatedLinks();
+      setStatus('Filtro de período limpo.');
     }
 
     function renderHistory() {
@@ -531,6 +764,7 @@
 
       if (reports.length === 0) {
         historyList.innerHTML = '<div class="empty">Nenhum relatório encontrado.</div>';
+        updateConsolidatedLinks();
         return;
       }
 
@@ -550,6 +784,8 @@
           </article>
         `;
       }).join('');
+
+      updateConsolidatedLinks();
     }
 
     function escapeHTML(value) {
@@ -570,21 +806,8 @@
     function printSavedReport(reportDate) {
       const report = loadReports().find(item => item.date === reportDate);
       if (!report) return;
-      const originalDate = dateInput.value;
-      const originalWorker = workerInput.value;
-      const originalActivities = activitiesInput.value;
-
-      dateInput.value = report.date;
-      workerInput.value = report.worker || 'Darci de Brum';
-      activitiesInput.value = report.activities || '';
-      updatePreview();
-      openTab('form-tab');
-      window.print();
-
-      dateInput.value = originalDate;
-      workerInput.value = originalWorker;
-      activitiesInput.value = originalActivities;
-      updatePreview();
+      const title = `RELATÓRIO DIÁRIO OPERACIONAL - ${formatDateBR(report.date)}`;
+      printText(title, buildReportText(report));
     }
 
     function exportBackup() {
@@ -633,6 +856,7 @@
           merged.sort((a, b) => b.date.localeCompare(a.date));
           saveReports(merged);
           renderHistory();
+          updateConsolidatedLinks();
           setStatus('Backup importado com sucesso.');
         } catch (error) {
           setStatus('Não foi possível importar o arquivo. Verifique se é um backup JSON válido.', true);
@@ -645,6 +869,7 @@
       if (!confirm('Tem certeza que deseja apagar todo o histórico? Esta ação não poderá ser desfeita.')) return;
       localStorage.removeItem(STORAGE_KEY);
       renderHistory();
+      updateConsolidatedLinks();
       setStatus('Todo o histórico foi apagado.');
     }
 
@@ -665,11 +890,17 @@
 
     document.getElementById('save-btn').addEventListener('click', saveCurrentReport);
     document.getElementById('copy-btn').addEventListener('click', () => copyText());
-    document.getElementById('pdf-btn').addEventListener('click', () => window.print());
+    document.getElementById('pdf-btn').addEventListener('click', () => printText('RELATÓRIO DIÁRIO OPERACIONAL - RDO', buildReportText()));
     document.getElementById('clear-form-btn').addEventListener('click', clearForm);
     document.getElementById('export-backup-btn').addEventListener('click', exportBackup);
     document.getElementById('import-backup-btn').addEventListener('click', () => backupFile.click());
     document.getElementById('delete-all-btn').addEventListener('click', deleteAllReports);
+    document.getElementById('copy-period-btn').addEventListener('click', copyPeriodReports);
+    document.getElementById('pdf-period-btn').addEventListener('click', printPeriodReports);
+    document.getElementById('copy-all-btn').addEventListener('click', copyAllReports);
+    document.getElementById('pdf-all-btn').addEventListener('click', printAllReports);
+    document.getElementById('clear-period-btn').addEventListener('click', clearPeriod);
+
     backupFile.addEventListener('change', event => {
       const file = event.target.files[0];
       if (file) importBackup(file);
@@ -680,11 +911,17 @@
       input.addEventListener('input', updatePreview);
     });
 
+    [periodStartInput, periodEndInput, periodOrderInput].forEach(input => {
+      input.addEventListener('input', updateConsolidatedLinks);
+      input.addEventListener('change', updateConsolidatedLinks);
+    });
+
     historySearch.addEventListener('input', renderHistory);
 
     dateInput.value = todayISO();
     updatePreview();
     renderHistory();
+    updateConsolidatedLinks();
   </script>
 </body>
 </html>
